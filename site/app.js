@@ -1,4 +1,4 @@
-import { kyivDate, ageDays, validNumber, sparkPath } from './data-utils.js';
+import { kyivDate, ageDays, validNumber, sparkPath } from './data-utils.js?v=20261107-r4';
 const $ = id => document.getElementById(id);
 const decimal = new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function dateLabel(iso) {
@@ -44,9 +44,9 @@ function renderFuel(data) {
     $('fuel-' + key).textContent = valid ? decimal.format(item.min) + (item.max > item.min ? '–' + decimal.format(item.max) : '') : '—';
     $('fuel-' + key + '-caption').textContent = valid ? `${item.stations} АЗК з ціною · ${isSnapshot ? 'знімок сторінки' : 'збережені дані'}` : 'Немає підтвердженої ціни';
   }
-  $('fuel-status').textContent = isSnapshot ? `${stale ? 'Збережений ' : ''}Знімок цін · не live` : 'Ціни тимчасово недоступні';
+  $('fuel-status').textContent = isSnapshot ? `Знімок ${dateLabel(data.observedDate)} · не live` : 'Ціни недоступні';
   $('fuel-status').classList.add('amber');
-  $('fuel-source-status').textContent = `Знімок сторінки: ${dateLabel(data?.observedDate)}. Дату зміни ціни джерело не вказує.`;
+  $('fuel-source-status').textContent = `Знімок: ${dateLabel(data?.observedDate)} · роздріб, грн/л`;
   $('fuel-source-status').title = 'Діапазон цін АЗК компанії, не середнє по Україні. Точну ціну перевіряйте на АЗК.';
   renderHistory();
 }
@@ -70,12 +70,14 @@ async function load() {
       const age = ageDays(row?.date);
       const valid = row && validNumber(row.value) && age >= 0 && Number.isFinite(age);
       $(key).textContent = valid ? decimal.format(row.value) : '—';
-      $(key + '-date').textContent = valid ? 'Діє на ' + dateLabel(row.date) : 'Немає підтверджених даних';
+      $(key + '-date').textContent = valid ? dateLabel(row.date) : 'Немає підтверджених даних';
       if (!valid || row.date !== kyivDate()) fxCurrent = false;
     }
     const fxOld = !fxCurrent || data.fx?.status !== 'ok' || !data.fx?.fetchedAt || Date.now() - Date.parse(data.fx.fetchedAt) > 36 * 3600000;
     $('fx-status').textContent = (fxOld ? 'Увага: збережені / неактуальні дані · ' : 'Отримано ') + timestamp(data.fx?.fetchedAt);
     $('fx-status').classList.toggle('warning', fxOld);
+    $('fx-brief').textContent = fxOld ? 'НБУ · увага: збережені дані' : 'НБУ · офіційний, не готівковий';
+    $('fx-brief').classList.toggle('warning', fxOld);
     for (const key of ['brent', 'wti']) {
       const series = data.energy?.[key];
       const points = Array.isArray(series?.points) ? series.points.filter(p => validNumber(p.value) && Number.isFinite(ageDays(p.date)) && ageDays(p.date) >= 0).sort((a, b) => a.date.localeCompare(b.date)) : [];
@@ -84,11 +86,12 @@ async function load() {
       $(key + '-chart').querySelector('path').setAttribute('d', sparkPath(points));
       $(key + '-chart').setAttribute('aria-label', latest ? `${key.toUpperCase()}: ${points.length} останніх опублікованих спостережень, до ${dateLabel(latest.date)}` : 'Немає даних графіка');
       const stale = latest && (ageDays(latest.date) > 7 || series.status !== 'ok' || Date.now() - Date.parse(series.fetchedAt || 0) > 36 * 3600000);
-      $(key + '-status').textContent = latest ? `${stale ? 'Застаріле · ' : 'Спостереження '}${dateLabel(latest.date)} · отримано ${timestamp(series.fetchedAt)}${series.releaseDate ? ' · випуск ' + dateLabel(series.releaseDate) : ''}` : 'Джерело тимчасово недоступне';
+      $(key + '-details').textContent = latest ? `${key.toUpperCase()}: спостереження ${dateLabel(latest.date)} · отримано ${timestamp(series.fetchedAt)}${series.releaseDate ? ' · випуск ' + dateLabel(series.releaseDate) : ''}` : 'Джерело тимчасово недоступне';
+      $(key + '-status').textContent = latest ? `${stale ? 'Застаріле · ' : ''}${dateLabel(latest.date)}` : 'Дані недоступні';
       $(key + '-status').classList.toggle('warning', !!stale);
     }
     const cacheStale = !data.attemptedAt || Date.now() - Date.parse(data.attemptedAt) > 36 * 3600000;
-    $('cache-status').textContent = `${cacheStale ? 'Кеш потребує оновлення' : 'Перевірка джерел'}: ${timestamp(data.attemptedAt)} · НБУ / EIA: перевірка щогодини*`;
+    $('cache-status').textContent = `${cacheStale ? 'Дані потребують перевірки' : 'Перевірено'}: ${timestamp(data.attemptedAt)}`;
     $('cache-status').classList.toggle('warning', cacheStale);
     $('cache-status').title = '* GitHub Actions може запускатися із затримкою. Дати спостережень показано окремо. Сторінка перевіряє кеш кожні 5 хв.';
   } catch {
@@ -98,6 +101,8 @@ async function load() {
     $('fuel-status').classList.add('amber');
     $('fx-status').textContent = 'Немає зв’язку з кешем · актуальність не підтверджена';
     $('fx-status').classList.add('warning');
+    $('fx-brief').textContent = 'НБУ · зв’язок не підтверджено';
+    $('fx-brief').classList.add('warning');
     for (const key of ['brent','wti']) {
       $(key + '-status').textContent = 'Немає зв’язку · актуальність не підтверджена';
       $(key + '-status').classList.add('warning');
@@ -139,6 +144,8 @@ for (const id of ['settings', 'team-info']) $(id).addEventListener('click', () =
 for (const id of ['close-dialog', 'understood']) $(id).addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if(event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
 $('refresh').addEventListener('click', load);
+$('sources').addEventListener('click', () => $('sources-dialog').showModal());
+$('close-sources').addEventListener('click', () => $('sources-dialog').close());
 $('fullscreen').addEventListener('click', async () => {
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
   catch { $('fullscreen').title = 'Повноекранний режим недоступний у цьому браузері'; }

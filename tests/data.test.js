@@ -24,17 +24,18 @@ test('static assets and safe base scope', () => {
   const html = readFileSync('site/index.html','utf8');
   assert.ok(html.includes('<html lang="uk">'));
   assert.ok(html.includes('<title>Відділ Опт СН</title>'));
-  assert.ok(html.includes('Пальне · роздрібний орієнтир мережі'));
-  assert.ok(html.includes('Ілюстрація · не фактичні маршрути'));
-  assert.ok(html.includes('Історія цін накопичуватиметься'));
+  assert.ok(html.includes('Пальне · роздріб мережі'));
+  assert.ok(!html.includes('<figcaption>'));
+  assert.ok(html.includes('sources-dialog'));
+  assert.ok(html.includes('Історія накопичується'));
   assert.ok(!/АЗС Барс|ArbiQuest/i.test(html));
   assert.ok(html.includes('Демонстраційний вхід — не захист даних'));
-  assert.ok(html.includes('Приклад даних · не фактичні показники'));
+  assert.ok(html.includes('ДЕМО · Приклад даних'));
   const app=readFileSync('site/app.js','utf8');
   assert.ok(!/localStorage|sessionStorage/.test(app));
   assert.ok(app.includes("crypto.subtle.digest('SHA-256'"));
   assert.ok(html.includes('Захищений вхід ще не підключено'));
-  for (const m of html.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g)) assert.ok(existsSync('site/'+m[1]), m[1]);
+  for (const m of html.matchAll(/(?:src|href)="\.\/([^"?#]+)(?:\?[^"]*)?"/g)) assert.ok(existsSync('site/'+m[1]), m[1]);
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
   assert.equal(new Set(ids).size,ids.length);
   for (const id of ['settings','settings-dialog','close-dialog','understood','refresh','fullscreen','usd','eur','brent','wti']) assert.ok(ids.includes(id));
@@ -69,4 +70,14 @@ test('no undocumented company API, no real private stats, demo gate is explicit'
   assert.ok(app.includes("$('demo-login').reset()"));
   assert.ok(/DEMO_DIGEST = '[0-9a-f]{64}'/.test(app));
   assert.ok(!/localStorage|sessionStorage/.test(app));
+});
+
+test('release-versioned assets and accessible source details', () => {
+  const html=readFileSync('site/index.html','utf8');
+  assert.ok(html.includes('style.css?v=20261107-r4'));
+  assert.ok(html.includes('app.js?v=20261107-r4'));
+  assert.ok(html.includes('id="sources-dialog"'));
+  assert.ok(html.includes('id="sources"'));
+  assert.ok(!html.includes('Статистика відділу — пізніше'));
+  assert.ok(html.includes('Демо-статистика відділу 🔒'));
 });
