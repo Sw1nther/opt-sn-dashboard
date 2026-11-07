@@ -28,6 +28,27 @@ class RefreshTests(unittest.TestCase):
         for html in ['', '<tr><td>not an EIA row</td></tr>', '<tr><td>2026 Nov- 2 to Nov- 6</td><td>NA</td><td>0.00</td><td>-</td><td>-</td><td>-</td></tr>']:
             with self.assertRaises(ValueError): mod.parse_eia(html,date(2026,11,7))
 
+    def test_public_prices_do_not_substitute_premium(self):
+        payload={'pricesAvailable':True,'stations':[{'fuels':[
+            {'title':'A-95','grade':'premium','price':'99'},
+            {'title':'А-98','grade':'super','price':'96.9'},
+            {'title':'A-95','grade':'euro','price':'85.5'},
+            {'title':'ДП+','grade':'premium','price':'102'},
+            {'title':'ДП','grade':'euro','price':'101.9'},
+            {'title':'LPG','grade':'extra','price':'58.64'}]}]}
+        data=mod.parse_station_prices(payload)
+        self.assertEqual(data['a95']['min'],85.5)
+        self.assertEqual(data['a98']['min'],96.9)
+        self.assertEqual(data['diesel']['min'],101.9)
+        self.assertEqual(data['lpg']['stations'],1)
+        payload['stations'][0]['fuels']=[{'title':'A-95','grade':'premium','price':'99'}]
+        with self.assertRaises(ValueError):mod.parse_station_prices(payload)
+
+    def test_public_price_range_and_bad_values(self):
+        stations=[{'fuels':[{'title':'LPG','grade':'extra','price':v}]} for v in ['58,64','59.34','NaN','-1','',None]]
+        self.assertEqual(mod.parse_station_prices({'pricesAvailable':True,'stations':stations})['lpg'],{'min':58.64,'max':59.34,'stations':2})
+        with self.assertRaises(ValueError):mod.parse_station_prices({'pricesAvailable':False,'stations':stations})
+
     def test_failure_retains_old_cache_and_flags_error(self):
         with tempfile.TemporaryDirectory() as directory:
             target=Path(directory)/'market.json'
@@ -38,6 +59,6 @@ class RefreshTests(unittest.TestCase):
             self.assertEqual(actual['fx']['rates'],previous['fx']['rates'])
             self.assertEqual(actual['fx']['fetchedAt'],previous['fx']['fetchedAt'])
             self.assertEqual(actual['fx']['status'],'error')
-            self.assertEqual(len(actual['errors']),3)
+            self.assertEqual(len(actual['errors']),4)
 
 if __name__=='__main__': unittest.main()

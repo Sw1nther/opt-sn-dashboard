@@ -1,0 +1,10 @@
+Ukraine boundary: geoBoundaries UKR ADM0, simplified Single Country geometry.
+Source metadata: https://www.geoboundaries.org/api/current/gbOpen/UKR/ADM0/
+Boundary source: OpenStreetMap contributors, Wambacher.
+License named in the dataset metadata: Open Data Commons Open Database License 1.0 (ODbL).
+https://opendatacommons.org/licenses/odbl/1-0/
+https://www.openstreetmap.org/copyright
+Original geometry provided alongside this file: ukraine.geojson
+Upstream: https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/UKR/ADM0/geoBoundaries-UKR-ADM0_simplified.geojson
+Produced SVG work: supply-ukraine.svg. Outline further simplified for display; Crimea included as part of Ukraine.
+Routes, tanker and station are original illustrative artwork, not live routes, fleet telemetry, real facilities or current operational coverage. City points indicate approximate geographical city centers only.

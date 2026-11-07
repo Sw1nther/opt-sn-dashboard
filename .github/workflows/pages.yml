@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Test
+        run: npm test
       - name: Restore last successful public data cache
         uses: actions/cache/restore@v4
         with:
@@ -35,8 +37,6 @@ jobs:
       - name: Apply last successful data
         run: |
           if [ -f .market-cache/market.json ]; then cp .market-cache/market.json site/data/market.json; fi
-      - name: Test
-        run: npm test
       - name: Refresh official observations
         run: python3 scripts/refresh.py
       - name: Save public data cache

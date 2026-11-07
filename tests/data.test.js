@@ -24,7 +24,9 @@ test('static assets and safe base scope', () => {
   const html = readFileSync('site/index.html','utf8');
   assert.ok(html.includes('<html lang="uk">'));
   assert.ok(html.includes('<title>Відділ Опт СН</title>'));
-  assert.ok(html.includes('Роздрібний орієнтир ринку України'));
+  assert.ok(html.includes('Пальне · роздрібний орієнтир мережі'));
+  assert.ok(html.includes('Ілюстрація · не фактичні маршрути'));
+  assert.ok(html.includes('Історія починається сьогодні'));
   assert.ok(!/type=["']password|<form|АЗС Барс|ArbiQuest/i.test(html));
   assert.ok(html.includes('Захищений вхід ще не підключено'));
   for (const m of html.matchAll(/(?:src|href)="\.\/([^"?#]+)"/g)) assert.ok(existsSync('site/'+m[1]), m[1]);
@@ -36,7 +38,11 @@ test('committed public cache schema has no private statistics', () => {
   const data=JSON.parse(readFileSync('site/data/market.json','utf8'));
   assert.equal(data.schemaVersion,1);
   assert.deepEqual(data.fx.rates.map(r=>r.code).sort(), ['EUR','USD']);
-  assert.equal(data.fuel.status,'not_connected');
+  assert.equal(data.fuel.status,'ok');
+  assert.equal(data.fuel.scope,'retail_network');
+  assert.equal(data.fuel.sourceDate,null);
+  assert.ok(data.fuel.items.a98.min > 0);
+  assert.ok(data.fuel.history.length >= 1);
   assert.ok(!('statistics' in data));
   assert.ok(data.fx.rates.every(r=>validNumber(r.value)));
 });

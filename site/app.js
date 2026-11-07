@@ -15,6 +15,41 @@ function clock() {
   $('clock').dateTime = now.toISOString();
   $('today').textContent = new Intl.DateTimeFormat('uk-UA', {timeZone: 'Europe/Kyiv', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}).format(now);
 }
+let fuelData = null;
+function renderHistory() {
+  const key = $('history-fuel').value;
+  const history = (fuelData?.history || []).filter(row => validNumber(row.items?.[key]?.min) && ageDays(row.date) >= 0).sort((a,b) => a.date.localeCompare(b.date));
+  const first = history[0], last = history.at(-1), enough = history.length >= 2;
+  $('fuel-history-chart').hidden = !enough;
+  $('history-pending').hidden = enough;
+  if (enough) {
+    $('fuel-history-chart').querySelector('path').setAttribute('d', sparkPath(history.map(row => ({value: row.items[key].min}))));
+    $('fuel-history-chart').setAttribute('aria-label', 'Реальні спостереження мінімальної роздрібної ціни у мережі, грн за літр, ' + dateLabel(first.date) + ' — ' + dateLabel(last.date));
+    const delta = last.items[key].min - history.at(-2).items[key].min;
+    $('history-change').textContent = `${delta > 0 ? '↑ +' : delta < 0 ? '↓ ' : '→ '}${decimal.format(delta)} грн/л`;
+    $('history-change').classList.toggle('history-up', delta > 0);
+    $('history-change').classList.toggle('history-down', delta < 0);
+    $('history-change').title = 'Зміна від попереднього щоденного спостереження';
+  } else $('history-change').textContent = history.length ? 'Перше спостереження' : 'Ще немає історії';
+  $('history-state').textContent = last ? `${decimal.format(last.items[key].min)} грн/л · спостереження ${dateLabel(last.date)}` : 'Даних для графіка ще немає';
+  $('history-dates').textContent = first ? `Період: ${dateLabel(first.date)}${enough ? ' — ' + dateLabel(last.date) : ' · 1 день'}` : 'Спостереження накопичуватимуться після підключення';
+}
+function renderFuel(data) {
+  fuelData = data;
+  const stale = data?.status !== 'ok' || !data?.fetchedAt || Date.now() - Date.parse(data.fetchedAt) > 36 * 3600000;
+  for (const key of ['a98','a95','diesel','lpg']) {
+    const item = data?.items?.[key];
+    const valid = validNumber(item?.min) && validNumber(item?.max) && item.max >= item.min;
+    $('fuel-' + key).textContent = valid ? decimal.format(item.min) + (item.max > item.min ? '–' + decimal.format(item.max) : '') : '—';
+    $('fuel-' + key + '-caption').textContent = valid ? `${item.stations} АЗК з ціною · ${stale ? 'збережені дані' : 'діапазон у мережі'}` : 'Немає підтвердженої ціни';
+  }
+  $('fuel-status').textContent = stale ? 'Увага: збережені / недоступні ціни' : 'Публічні ціни мережі · не опт';
+  $('fuel-status').classList.toggle('amber', stale);
+  $('fuel-source-status').textContent = `Отримано ${timestamp(data?.fetchedAt)}. Дату зміни ціни джерело не вказує.`;
+  $('fuel-source-status').title = 'Діапазон цін АЗК компанії, не середнє по Україні. Точну ціну перевіряйте на АЗК.';
+  renderHistory();
+}
+$('history-fuel').addEventListener('change', renderHistory);
 let loading = false;
 async function load() {
   if (loading) return;
@@ -26,6 +61,7 @@ async function load() {
     if (!response.ok) throw new Error('HTTP ' + response.status);
     const data = await response.json();
     if (data.schemaVersion !== 1) throw new Error('Unsupported data');
+    renderFuel(data.fuel);
     let fxCurrent = true;
     for (const code of ['USD', 'EUR']) {
       const key = code.toLowerCase();
@@ -57,6 +93,8 @@ async function load() {
   } catch {
     $('cache-status').textContent = 'Не вдалося оновити дані. Попередні значення, якщо є, можуть бути застарілими.';
     $('cache-status').classList.add('warning');
+    $('fuel-status').textContent = 'Немає зв’язку · ціни не підтверджено';
+    $('fuel-status').classList.add('amber');
     $('fx-status').textContent = 'Немає зв’язку з кешем · актуальність не підтверджена';
     $('fx-status').classList.add('warning');
     for (const key of ['brent','wti']) {

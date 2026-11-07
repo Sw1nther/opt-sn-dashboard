@@ -66,13 +66,50 @@ def parse_eia(html, today):
     return points, datetime.strptime(release[1], '%m/%d/%Y').date().isoformat() if release else None
 
 
+def parse_station_prices(payload):
+    """Only the public map feed; never use account, card or corporate endpoints."""
+    if payload.get('pricesAvailable') is not True:
+        raise ValueError('Public prices unavailable')
+    prices = {key: [] for key in ('a98', 'a95', 'diesel', 'lpg')}
+    for station in payload.get('stations', []):
+        seen = set()
+        for fuel in station.get('fuels', []):
+            title = str(fuel.get('title', '')).replace('А', 'A').strip().upper()
+            grade = str(fuel.get('grade', '')).strip().lower()
+            key = {('A-98', 'super'): 'a98', ('A-95', 'euro'): 'a95', ('ДП', 'euro'): 'diesel', ('LPG', 'extra'): 'lpg'}.get((title, grade))
+            if not key or key in seen:
+                continue
+            try:
+                value = float(str(fuel['price']).replace(',', '.'))
+            except (KeyError, TypeError, ValueError):
+                continue
+            if 0 < value < 1000:
+                prices[key].append(value)
+                seen.add(key)
+    result = {key: {'min': min(values), 'max': max(values), 'stations': len(values)} for key, values in prices.items() if values}
+    if not result:
+        raise ValueError('No valid public station prices')
+    return result
+
+
 def refresh():
     now = datetime.now(KYIV)
     today = now.date()
     old = json.loads(TARGET.read_text()) if TARGET.exists() else {}
     output = {'schemaVersion': 1, 'attemptedAt': now.isoformat(), 'fx': old.get('fx', {}), 'energy': old.get('energy', {}),
-              'fuel': {'status': 'not_connected', 'unit': 'UAH/L', 'items': ['А-98', 'А-95', 'ДП', 'LPG']}}
+              'fuel': old.get('fuel', {})}
     errors = []
+    try:
+        items = parse_station_prices(json.loads(fetch('https://barsgroup.com.ua/api/stations')))
+        history = output['fuel'].get('history', [])
+        # One observed snapshot per Kyiv day; never backfill unavailable dates.
+        history = [row for row in history if row.get('date') != today.isoformat()][-89:]
+        history.append({'date': today.isoformat(), 'observedAt': now.isoformat(), 'items': items})
+        output['fuel'] = {'status': 'ok', 'source': 'https://barsgroup.com.ua/map', 'feed': 'https://barsgroup.com.ua/api/stations',
+                          'fetchedAt': now.isoformat(), 'sourceDate': None, 'unit': 'UAH/L', 'scope': 'retail_network', 'items': items, 'history': history}
+    except Exception as exc:
+        output['fuel']['status'] = 'error'
+        errors.append(f'fuel: {type(exc).__name__}')
     try:
         # Explicit Kyiv date avoids the NBU default endpoint switching to tomorrow after 15:30.
         url = f'https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={today:%Y%m%d}&json'
