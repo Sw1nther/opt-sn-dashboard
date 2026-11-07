@@ -1,0 +1,4 @@
+__pycache__/
+.market-cache/
+node_modules/
+*.png

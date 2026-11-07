@@ -1,0 +1,54 @@
+name: Refresh public data and publish Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restore last successful public data cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .market-cache
+          key: market-data-${{ github.run_id }}
+          restore-keys: market-data-
+      - name: Apply last successful data
+        run: |
+          if [ -f .market-cache/market.json ]; then cp .market-cache/market.json site/data/market.json; fi
+      - name: Test
+        run: npm test
+      - name: Refresh official observations
+        run: python3 scripts/refresh.py
+      - name: Save public data cache
+        run: mkdir -p .market-cache && cp site/data/market.json .market-cache/market.json
+      - uses: actions/cache/save@v4
+        with:
+          path: .market-cache
+          key: market-data-${{ github.run_id }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

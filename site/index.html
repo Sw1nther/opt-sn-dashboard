@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b26">
+  <meta name="description" content="Відділ Опт СН — інформаційна панель: офіційні курси НБУ та енергетичні орієнтири.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Відділ Опт СН</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">До показників</a>
+<div class="shell">
+  <header class="topbar">
+    <a href="./" class="wordmark" aria-label="Відділ Опт СН — головна"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>ОПТ <b>СН</b></span></a>
+    <div class="top-label">ІНФОРМАЦІЙНА ПАНЕЛЬ <span>/</span> УКРАЇНА</div>
+    <div class="header-tools"><span class="zone">Київ <time id="clock">--:--</time></span><button id="fullscreen" class="icon-button" aria-label="На весь екран" title="На весь екран">⛶</button><button id="settings" class="icon-button gear" aria-label="Налаштування" title="Налаштування">⚙</button></div>
+  </header>
+  <main id="main">
+    <section class="heading">
+      <div><p class="eyebrow"><span class="dot"></span> РИНОК. ОРІЄНТИРИ. КОМАНДА.</p><h1>Відділ Опт СН<span class="title-dot">.</span></h1><p class="subtitle">Оптові закупівлі та постачання пального по Україні</p></div>
+      <div class="today"><span id="today">Завантаження дати…</span><small>Час і дати — за Києвом</small></div>
+    </section>
+    <section class="currency-section" aria-labelledby="currency-title">
+      <div class="section-label"><h2 id="currency-title">01 <span>Курси валют</span></h2><span>Офіційний курс НБУ · не готівковий</span></div>
+      <div class="currency-grid">
+        <article class="currency-card"><div class="currency-symbol" aria-hidden="true">$</div><div class="currency-name"><h3>Долар США <span>USD</span></h3><p id="usd-date">Дані завантажуються</p></div><div class="rate"><strong id="usd">—</strong><span>грн / 1 USD</span></div></article>
+        <article class="currency-card"><div class="currency-symbol euro" aria-hidden="true">€</div><div class="currency-name"><h3>Євро <span>EUR</span></h3><p id="eur-date">Дані завантажуються</p></div><div class="rate"><strong id="eur">—</strong><span>грн / 1 EUR</span></div></article>
+      </div>
+      <div class="section-foot"><a href="https://bank.gov.ua/ua/open-data" target="_blank" rel="noopener noreferrer">Джерело: Національний банк України ↗</a><span id="fx-status" role="status">Перевірка джерела…</span></div>
+    </section>
+    <section class="fuel-section" aria-labelledby="fuel-title">
+      <div class="section-label"><h2 id="fuel-title">02 <span>Роздрібний орієнтир ринку України</span></h2><span class="pill amber">Джерело цін ще не підключено</span></div>
+      <div class="fuel-grid">
+        <article class="fuel-card"><div class="fuel-top"><h3>А-98</h3><span>БЕНЗИН</span></div><p class="fuel-value">— <small>грн/л</small></p><p class="fuel-caption">Немає підтвердженої ціни</p><div class="fuel-line"></div></article>
+        <article class="fuel-card"><div class="fuel-top"><h3>А-95</h3><span>БЕНЗИН</span></div><p class="fuel-value">— <small>грн/л</small></p><p class="fuel-caption">Очікуємо підключення</p><div class="fuel-line"></div></article>
+        <article class="fuel-card"><div class="fuel-top"><h3>ДП</h3><span>ДИЗЕЛЬ</span></div><p class="fuel-value">— <small>грн/л</small></p><p class="fuel-caption">Очікуємо підключення</p><div class="fuel-line"></div></article>
+        <article class="fuel-card"><div class="fuel-top"><h3>LPG</h3><span>АВТОГАЗ</span></div><p class="fuel-value">— <small>грн/л</small></p><p class="fuel-caption">Очікуємо підключення</p><div class="fuel-line"></div></article>
+      </div>
+      <div class="section-foot"><span>Без умовних цін. А-98 не підмінюємо преміальним А-95.</span><a href="https://index.minfin.com.ua/ua/markets/fuel/" target="_blank" rel="noopener noreferrer">Переглянути ринок на Мінфін ↗</a></div>
+    </section>
+    <div class="lower-grid">
+      <section class="energy-section" aria-labelledby="energy-title">
+        <div class="section-label"><h2 id="energy-title">03 <span>Енергетичні орієнтири</span></h2><span>Спот · не біржовий live</span></div>
+        <div class="energy-grid">
+          <article class="energy-card"><div class="energy-head"><h3>Brent</h3><span>Європа · FOB</span></div><div class="energy-price"><strong id="brent">—</strong><small>$/барель</small></div><svg id="brent-chart" viewBox="0 0 300 44" role="img" aria-label="Brent: останні опубліковані спостереження"><path d=""/></svg><p id="brent-status" class="energy-status">Перевірка даних…</p><a href="https://www.eia.gov/dnav/pet/hist/RBRTEd.htm" target="_blank" rel="noopener noreferrer">Джерело: U.S. EIA ↗</a></article>
+          <article class="energy-card"><div class="energy-head"><h3>WTI</h3><span>Cushing · FOB</span></div><div class="energy-price"><strong id="wti">—</strong><small>$/барель</small></div><svg id="wti-chart" viewBox="0 0 300 44" role="img" aria-label="WTI: останні опубліковані спостереження"><path d=""/></svg><p id="wti-status" class="energy-status">Перевірка даних…</p><a href="https://www.eia.gov/dnav/pet/hist/RWTCd.htm" target="_blank" rel="noopener noreferrer">Джерело: U.S. EIA ↗</a></article>
+        </div>
+      </section>
+      <section class="team-section" aria-labelledby="team-title">
+        <div class="section-label"><h2 id="team-title">04 <span>Наш відділ</span></h2><span class="pill">Наступний етап</span></div>
+        <div class="team-card"><div class="team-icon" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M12 18v-6a8 8 0 0 1 16 0v6M10 18h20v17H10zM20 25v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="eyebrow">СТАТИСТИКА ЗАВЕЗЕНЬ</p><h3>Місце для наших результатів</h3><p>Літри, поставки та динаміка відділу.<br>Додамо пізніше — після підключення таблиці та входу для працівників.</p><button id="team-info" class="text-button">Що буде далі <span>↗</span></button></div></div>
+      </section>
+    </div>
+  </main>
+  <footer><span><span class="footer-mark">СН</span> Робочий простір відділу</span><span id="cache-status" role="status">Завантаження відкритих даних…</span><button id="refresh" class="text-button">Оновити дані ↻</button></footer>
+</div>
+<dialog id="settings-dialog" aria-labelledby="dialog-title"><button id="close-dialog" class="dialog-close icon-button" aria-label="Закрити">×</button><p class="eyebrow">РОЗВИВАЄМО ПОСТУПОВО</p><h2 id="dialog-title">Налаштування — незабаром</h2><p>Зараз це базова інформаційна панель із відкритими ринковими даними.</p><ul><li>Додамо статистику з Google Таблиць, коли таблиця буде готова.</li><li>Вхід для працівників і ручне редагування адміністратором — окремий наступний етап.</li></ul><p class="dialog-note">Захищений вхід ще не підключено. Сайт не збирає логіни або паролі й не містить внутрішньої статистики.</p><button id="understood" class="primary-button">Зрозуміло</button></dialog>
+</body>
+</html>
