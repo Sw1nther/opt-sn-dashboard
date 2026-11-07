@@ -1,0 +1,59 @@
+{
+  "status": "snapshot",
+  "source": "https://barsgroup.com.ua/map",
+  "provenance": "Text visibly displayed on the ordinary public map page, read with WebFetch during the first branded update on 2026-11-07. Manually transcribed min/max ranges; no API is used to create or update this snapshot.",
+  "observedDate": "2026-11-07",
+  "sourceDate": null,
+  "unit": "UAH/L",
+  "scope": "retail_network",
+  "items": {
+    "a98": {
+      "min": 96.9,
+      "max": 96.9,
+      "stations": 3
+    },
+    "a95": {
+      "min": 84.9,
+      "max": 85.9,
+      "stations": 15
+    },
+    "diesel": {
+      "min": 101.9,
+      "max": 102.5,
+      "stations": 15
+    },
+    "lpg": {
+      "min": 56.44,
+      "max": 59.34,
+      "stations": 37
+    }
+  },
+  "history": [
+    {
+      "date": "2026-11-07",
+      "observationType": "public_page_snapshot",
+      "items": {
+        "a98": {
+          "min": 96.9,
+          "max": 96.9,
+          "stations": 3
+        },
+        "a95": {
+          "min": 84.9,
+          "max": 85.9,
+          "stations": 15
+        },
+        "diesel": {
+          "min": 101.9,
+          "max": 102.5,
+          "stations": 15
+        },
+        "lpg": {
+          "min": 56.44,
+          "max": 59.34,
+          "stations": 37
+        }
+      }
+    }
+  ]
+}

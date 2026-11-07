@@ -36,16 +36,17 @@ function renderHistory() {
 }
 function renderFuel(data) {
   fuelData = data;
-  const stale = data?.status !== 'ok' || !data?.fetchedAt || Date.now() - Date.parse(data.fetchedAt) > 36 * 3600000;
+  const isSnapshot = data?.status === 'snapshot';
+  const stale = !isSnapshot || ageDays(data?.observedDate) > 1;
   for (const key of ['a98','a95','diesel','lpg']) {
     const item = data?.items?.[key];
     const valid = validNumber(item?.min) && validNumber(item?.max) && item.max >= item.min;
     $('fuel-' + key).textContent = valid ? decimal.format(item.min) + (item.max > item.min ? '–' + decimal.format(item.max) : '') : '—';
-    $('fuel-' + key + '-caption').textContent = valid ? `${item.stations} АЗК з ціною · ${stale ? 'збережені дані' : 'діапазон у мережі'}` : 'Немає підтвердженої ціни';
+    $('fuel-' + key + '-caption').textContent = valid ? `${item.stations} АЗК з ціною · ${isSnapshot ? 'знімок сторінки' : 'збережені дані'}` : 'Немає підтвердженої ціни';
   }
-  $('fuel-status').textContent = stale ? 'Увага: збережені / недоступні ціни' : 'Публічні ціни мережі · не опт';
-  $('fuel-status').classList.toggle('amber', stale);
-  $('fuel-source-status').textContent = `Отримано ${timestamp(data?.fetchedAt)}. Дату зміни ціни джерело не вказує.`;
+  $('fuel-status').textContent = isSnapshot ? `${stale ? 'Збережений ' : ''}Знімок цін · не live` : 'Ціни тимчасово недоступні';
+  $('fuel-status').classList.add('amber');
+  $('fuel-source-status').textContent = `Знімок сторінки: ${dateLabel(data?.observedDate)}. Дату зміни ціни джерело не вказує.`;
   $('fuel-source-status').title = 'Діапазон цін АЗК компанії, не середнє по Україні. Точну ціну перевіряйте на АЗК.';
   renderHistory();
 }
@@ -87,7 +88,7 @@ async function load() {
       $(key + '-status').classList.toggle('warning', !!stale);
     }
     const cacheStale = !data.attemptedAt || Date.now() - Date.parse(data.attemptedAt) > 36 * 3600000;
-    $('cache-status').textContent = `${cacheStale ? 'Кеш потребує оновлення' : 'Перевірка джерел'}: ${timestamp(data.attemptedAt)} · автооновлення щогодини*`;
+    $('cache-status').textContent = `${cacheStale ? 'Кеш потребує оновлення' : 'Перевірка джерел'}: ${timestamp(data.attemptedAt)} · НБУ / EIA: перевірка щогодини*`;
     $('cache-status').classList.toggle('warning', cacheStale);
     $('cache-status').title = '* GitHub Actions може запускатися із затримкою. Дати спостережень показано окремо. Сторінка перевіряє кеш кожні 5 хв.';
   } catch {
@@ -103,7 +104,37 @@ async function load() {
     }
   } finally { loading = false; $('refresh').disabled = false; }
 }
+// A deliberately bypassable client-side DEMO gate, never real authentication.
+const DEMO_DIGEST = 'a8d0b6f0939cfd883251f62b265f971ef8a5ab97eee32b91460f08b965601d93';
+function showDemo(open) {
+  $('demo-stats').hidden = !open;
+  document.querySelector('.history-section > .history-card:not(.demo-stats)').hidden = open;
+  $('history-title').querySelector('span').textContent = open ? 'Статистика відділу · демо' : 'Динаміка цін на пальне';
+  document.querySelector('.history-select').hidden = open;
+}
+$('demo-lock').addEventListener('click', () => showDemo(false));
+$('demo-login').addEventListener('submit', async event => {
+  event.preventDefault();
+  const userOkay = $('demo-user').value.trim() === 'admin';
+  const bytes = new TextEncoder().encode($('demo-password').value);
+  $('demo-password').value = '';
+  $('demo-user').value = '';
+  $('demo-submit').disabled = true;
+  try {
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const hex = [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2,'0')).join('');
+    if (!userOkay || hex !== DEMO_DIGEST) {
+      $('login-status').textContent = 'Невірний демо-логін або демо-пароль.';
+      return;
+    }
+    $('login-status').textContent = '';
+    showDemo(true);
+    dialog.close();
+  } catch { $('login-status').textContent = 'Демо-вхід недоступний у цьому браузері. Реальні дані не використовуються.'; }
+  finally { bytes.fill(0); $('demo-submit').disabled = false; }
+});
 const dialog = $('settings-dialog');
+dialog.addEventListener('close', () => { $('demo-login').reset(); $('login-status').textContent = ''; });
 for (const id of ['settings', 'team-info']) $(id).addEventListener('click', () => dialog.showModal());
 for (const id of ['close-dialog', 'understood']) $(id).addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if(event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });

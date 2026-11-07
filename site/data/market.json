@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "attemptedAt": "2026-11-07T23:01:00.659680+02:00",
+  "attemptedAt": "2026-11-07T23:05:03.805085+02:00",
   "fx": {
     "status": "ok",
-    "fetchedAt": "2026-11-07T23:01:00.659680+02:00",
+    "fetchedAt": "2026-11-07T23:05:03.805085+02:00",
     "source": "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date=20261107&json",
     "rates": [
       {
@@ -22,7 +22,7 @@
     "brent": {
       "status": "ok",
       "source": "https://www.eia.gov/dnav/pet/hist/RBRTEd.htm",
-      "fetchedAt": "2026-11-07T23:01:00.659680+02:00",
+      "fetchedAt": "2026-11-07T23:05:03.805085+02:00",
       "releaseDate": "2026-11-04",
       "points": [
         {
@@ -119,7 +119,7 @@
     "wti": {
       "status": "ok",
       "source": "https://www.eia.gov/dnav/pet/hist/RWTCd.htm",
-      "fetchedAt": "2026-11-07T23:01:00.659680+02:00",
+      "fetchedAt": "2026-11-07T23:05:03.805085+02:00",
       "releaseDate": "2026-11-04",
       "points": [
         {
@@ -215,10 +215,10 @@
     }
   },
   "fuel": {
-    "status": "ok",
+    "status": "snapshot",
     "source": "https://barsgroup.com.ua/map",
-    "feed": "https://barsgroup.com.ua/api/stations",
-    "fetchedAt": "2026-11-07T23:01:00.659680+02:00",
+    "provenance": "Text visibly displayed on the ordinary public map page, read with WebFetch during the first branded update on 2026-11-07. Manually transcribed min/max ranges; no API is used to create or update this snapshot.",
+    "observedDate": "2026-11-07",
     "sourceDate": null,
     "unit": "UAH/L",
     "scope": "retail_network",
@@ -247,7 +247,7 @@
     "history": [
       {
         "date": "2026-11-07",
-        "observedAt": "2026-11-07T23:01:00.659680+02:00",
+        "observationType": "public_page_snapshot",
         "items": {
           "a98": {
             "min": 96.9,
